@@ -1,0 +1,24 @@
+# Parser build output
+parser/lib/
+parser/node_modules/
+
+# Generated language-specific files from examples
+# Only commit the source .3md files, not the generated outputs
+spec/examples/*.si.md
+spec/examples/*.ta.md
+spec/examples/*.en.md
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Log files
+*.log
+npm-debug.log*
