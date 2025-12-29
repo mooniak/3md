@@ -1,9 +1,9 @@
 # 3md Specification
 
-**Version:** 0.1.0
-**Date:** 2025-12-29
-**Status:** Proposal
-**Authors:** Pathum Egodawatta, TriText Team
+**Version:** 0.1.0  
+**Date:** 2025-12-29  
+**Status:** Proposal  
+**Authors:** Pathum Egodawatta
 
 ---
 
@@ -20,15 +20,24 @@ This specification defines:
 3. **Document structure** requirements for trilingual documents
 4. **Processing rules** for parsers and renderers
 
-### 1.2 Design Goals
+### 1.2 Design Goals and Key Features
 
-3md extends CommonMark with the following goals:
+3md extends CommonMark with these core principles:
 
-1. **Unambiguous parsing**: Clear separator semantics eliminate parsing ambiguity
-2. **CommonMark compatibility**: All valid CommonMark constructs remain valid
-3. **Human readability**: Plain text format readable without specialized tools
-4. **Cultural relevance**: Use of Sinhala Kunddaliya (෴) connects to manuscript traditions
-5. **Trilingual constraint**: Fixed support for Sinhala, Tamil, and English only
+1. **Unambiguous parsing**: Dual-separator design (Kunddaliya ෴ for blocks, Tilde ~ for inline) eliminates parsing ambiguity and Markdown syntax conflicts
+2. **CommonMark compatibility**: All valid CommonMark constructs remain valid; 3md only adds new constructs
+3. **Human readability**: Plain text editable in any text editor, visually clear separators serve dual purpose (human/machine)
+4. **Cultural relevance**: Kunddaliya (෴) connects to South Asian manuscript traditions
+5. **Trilingual constraint**: Fixed support for Sinhala (si), Tamil (ta), and English (en)
+
+**Single-source multilingual**: All language variants in one file eliminates version drift. Translators see parallel content while working.
+
+**Parallel authoring**: Content written simultaneously in all languages preserves cultural context. Conceptual equivalence over literal translation. `{{empty}}` marker enables language-specific content.
+
+**Tool-agnostic plain text**: Edit anywhere. Version control with meaningful diffs. Future-proof archival. Export to any format (Word, PDF, InDesign, HTML).
+
+**Note:** Authoring tools MAY provide rich UIs while storing in 3md format. This specification defines storage format, not authoring experience.
+
 
 ### 1.3 Relationship to CommonMark
 
@@ -802,19 +811,37 @@ Example:~උදාහරණය:~உதாரணம்:
 
 #### 5.7.3 Images (Single Source)
 
+**Status**: Standard Markdown syntax with multilingual alt text
+
+Images use standard Markdown image syntax. **Fencing is NOT required** - images are automatically treated as language-invariant (Mono Blocks) with the image path appearing in all outputs.
+
 **Syntax:**
 
 ```
 ![alt1~alt2~alt3](image.png)
 ```
 
+**Rules:**
+
+1. Image path is language-invariant (same image in all outputs)
+2. Alt text SHOULD use separators (`~`) for multilingual accessibility
+3. Alt text provides screen reader support in each language
+4. NO fenced code blocks needed around images
+
+**When to use:**
+- Single image file that appears in all language outputs
+- Alt text needs translation for accessibility
+- Museum artifacts, diagrams, charts, photos
+
 **Example:**
 
 ```
 {{langs|si|ta|en}}
 
-![ගෘහ නිර්මාණ රූප සටහන~கட்டிடக்கலை வரைபடம்~Architecture diagram](arch.png)
+![ගෘහ නිර්මාණ රූප සටහන~கட்டிடக்கலை வரைபடம~Architecture diagram](arch.png)
 ```
+
+**Accessibility note:** Always provide multilingual alt text for screen readers. Each language output will render with the appropriate alt text for that language.
 
 #### 5.7.4 Images (Language-Specific Sources)
 
@@ -834,7 +861,97 @@ Example:~උදාහරණය:~உதாரணம்:
 
 Reference-style links (`[text][ref]` with `[ref]: url`) are **NOT SUPPORTED** in 3md due to syntax conflicts with entity references.
 
-### 5.8 Entity References
+### 5.8 HTML Embeds and Media
+
+**Status**: Mono Blocks (language-invariant)
+
+HTML content for embedded media (videos, audio, iframes, interactive widgets) MUST be placed in fenced code blocks. This content appears identically in all three language outputs.
+
+**Syntax:**
+
+````
+```
+<html content>
+```
+````
+
+**Rules:**
+
+1. HTML blocks MUST be wrapped in fenced code blocks (` ``` `)
+2. Language hint is OPTIONAL (may be omitted or set to `html`)
+3. Content is rendered as HTML, NOT as `<pre><code>` wrapped text
+4. Separators (`~` or `෴`) within HTML are literal characters, not processed
+5. Same HTML appears in all language outputs (Mono Block behavior)
+
+**Common use cases:**
+
+- **Video embeds**: YouTube, Vimeo, custom video players
+- **Audio players**: SoundCloud, custom audio elements
+- **Interactive widgets**: Maps, charts, forms
+- **Inline SVG graphics**: When embedding SVG code directly
+
+**Example 1: YouTube Embed**
+
+````markdown
+{{langs|si|ta|en}}
+
+Watch this documentary:~මෙම වාර්තා චිත්‍රපටය නරඹන්න:~இந்த ஆவணப்படத்தைப் பார்க்கவும்:
+
+```
+<iframe width="560" height="315"
+  src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+  title="Documentary video player"
+  frameborder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+  allowfullscreen>
+</iframe>
+```
+
+The video shows...~වීඩියෝව පෙන්වයි...~வீடியோ காட்டுகிறது...
+````
+
+**Example 2: Audio Player**
+
+````markdown
+{{langs|si|ta|en}}
+
+Listen to this recording:~මෙම පටිගත කිරීම අසන්න:~இந்த பதிவைக் கேளுங்கள்:
+
+```html
+<audio controls>
+  <source src="audio/interview-2024.mp3" type="audio/mpeg">
+  <source src="audio/interview-2024.ogg" type="audio/ogg">
+  Your browser does not support the audio element.
+</audio>
+```
+
+This interview discusses...~මෙම සම්මුඛ සාකච්ඡාව සාකච්ඡා කරයි...~இந்த நேர்காணல் விவாதிக்கிறது...
+````
+
+**Example 3: Inline SVG**
+
+````markdown
+{{langs|si|ta|en}}
+
+Symbol legend:~සංකේත පැහැදිලි කිරීම:~சின்னம் விளக்கம்:
+
+```
+<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />
+</svg>
+```
+
+Red circle indicates...~රතු වෘත්තය දක්වයි...~சிவப்பு வட்டம் குறிக்கிறது...
+````
+
+**Relationship to Images:**
+
+- **Images** (PNG, JPG, GIF): Use standard Markdown syntax `![alt~alt~alt](path.jpg)` - NO fencing required
+- **HTML embeds**: Use fenced blocks as shown above
+
+See [§5.7.3 Images](#573-images-single-source) for image syntax with multilingual alt text.
+
+### 5.9 Entity References
 
 **Status**: 3md Extension (not in CommonMark)
 
@@ -872,7 +989,7 @@ entities:
 [[bawa]] is a renowned architect.
 ```
 
-### 5.9 Emphasis and Strong Emphasis
+### 5.10 Emphasis and Strong Emphasis
 
 Standard CommonMark emphasis works within each language variant.
 
@@ -884,7 +1001,7 @@ Standard CommonMark emphasis works within each language variant.
 **තද** සහ *ඇලවූ* පෙළ.~**தடித்த** மற்றும் *சாய்வு* உரை.~**Bold** and *italic* text.
 ```
 
-### 5.10 HTML
+### 5.11 HTML
 
 **Status**: Inherits from CommonMark
 
@@ -907,7 +1024,7 @@ Some text~சில உரை~කිසියම් පෙළ
 More text~மேலும் உரை~තවත් පෙළ
 ```
 
-### 5.11 Comments
+### 5.12 Comments
 
 **Syntax**: Standard HTML comments
 

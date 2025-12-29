@@ -467,7 +467,192 @@ class EntityResolver:
         return re.sub(pattern, replace, text)
 ```
 
-### 5. Frontmatter Parsing
+### 5. HTML and Media Block Handling
+
+**HTML blocks for embeds and media**
+
+HTML content in fenced code blocks (videos, audio, iframes) must be:
+1. Detected as fenced code blocks during parsing
+2. Protected from separator processing (same as code protection)
+3. Rendered as HTML, NOT wrapped in `<pre><code>` tags
+
+**Implementation:**
+
+```python
+import re
+
+def detect_html_blocks(text: str) -> tuple[str, dict]:
+    """
+    Detect and extract HTML blocks from fenced code blocks.
+    Returns text with placeholders and mapping of placeholders to HTML.
+    """
+    html_blocks = {}
+    counter = 0
+
+    # Pattern for fenced code blocks (with optional 'html' language hint)
+    # Matches: ```\n<html>...</html>\n``` or ```html\n<html>...</html>\n```
+    pattern = r'```(?:html)?\n((?:<[^>]+>[\s\S]*?</[^>]+>)|(?:<[^>]+\s*/>))\n```'
+
+    def replace_html(match):
+        nonlocal counter
+        html_content = match.group(1).strip()
+
+        # Check if content is HTML (starts with < and contains >)
+        if is_html(html_content):
+            placeholder = f'\x00HTML_{counter}\x00'
+            html_blocks[placeholder] = html_content
+            counter += 1
+            return placeholder
+        else:
+            # Not HTML, keep as regular code block
+            return match.group(0)
+
+    text = re.sub(pattern, replace_html, text, flags=re.MULTILINE)
+    return text, html_blocks
+
+def is_html(content: str) -> bool:
+    """
+    Check if content appears to be HTML.
+    Simple heuristic: starts with < and contains HTML-like tags.
+    """
+    content = content.strip()
+    if not content.startswith('<'):
+        return False
+
+    # Check for common HTML patterns
+    html_patterns = [
+        r'<iframe[\s>]',
+        r'<video[\s>]',
+        r'<audio[\s>]',
+        r'<svg[\s>]',
+        r'<embed[\s>]',
+        r'<img[\s>]',
+        r'<div[\s>]',
+        r'<span[\s>]',
+    ]
+
+    return any(re.search(pattern, content, re.IGNORECASE) for pattern in html_patterns)
+
+def restore_html_blocks(text: str, html_blocks: dict) -> str:
+    """
+    Restore HTML blocks from placeholders without <pre><code> wrapping.
+    """
+    for placeholder, html in html_blocks.items():
+        text = text.replace(placeholder, html)
+    return text
+```
+
+**Usage in parser pipeline:**
+
+```python
+def parse_3md_document(text: str) -> dict:
+    """
+    Complete parsing pipeline with HTML block handling.
+    """
+    # 1. Extract frontmatter
+    frontmatter, text = parse_frontmatter(text)
+
+    # 2. Parse language declaration
+    langs, text = parse_language_declaration(text)
+
+    # 3. Protect code blocks (including HTML in code blocks)
+    text, code_blocks = protect_code_blocks(text)
+
+    # 4. Detect and extract HTML blocks (from protected code blocks)
+    text, html_blocks = detect_html_blocks(text)
+
+    # 5. Split on blank lines into blocks
+    blocks = text.split('\n\n')
+
+    # 6. Parse each block (detect separators, create Multi/Mono blocks)
+    parsed_blocks = []
+    for block in blocks:
+        parsed_block = parse_block(block, langs)
+        parsed_blocks.append(parsed_block)
+
+    # 7. Restore code blocks
+    text = restore_code_blocks(text, code_blocks)
+
+    # 8. Restore HTML blocks (as raw HTML, not code)
+    text = restore_html_blocks(text, html_blocks)
+
+    return {
+        'frontmatter': frontmatter,
+        'languages': langs,
+        'blocks': parsed_blocks,
+        'html_blocks': html_blocks
+    }
+```
+
+**Rendering HTML blocks:**
+
+When generating output (HTML, Markdown), HTML blocks should be:
+- **HTML output**: Rendered directly as HTML (no escaping, no `<pre><code>` wrapper)
+- **Markdown output**: Kept in fenced code blocks
+- **JSON AST**: Marked with `type: 'html_embed'` for processors
+
+**Example output:**
+
+```python
+# Input 3md
+text = '''
+{{langs|si|ta|en}}
+
+Watch this:~මෙය බලන්න:~இதைப் பார்க்கவும்:
+
+```
+<iframe src="https://youtube.com/embed/VIDEO"></iframe>
+```
+'''
+
+# HTML output for English variant
+html_output = '''
+<p>Watch this:</p>
+<iframe src="https://youtube.com/embed/VIDEO"></iframe>
+'''
+
+# Note: No <pre><code> wrapping, direct HTML rendering
+```
+
+**Image handling (no fencing required):**
+
+Images use standard Markdown syntax and do NOT require fencing:
+
+```python
+def parse_image(text: str, langs: list) -> dict:
+    """
+    Parse image with multilingual alt text.
+    Syntax: ![alt1~alt2~alt3](image.png)
+    """
+    pattern = r'!\[([^\]]+)\]\(([^\)]+)\)'
+
+    match = re.search(pattern, text)
+    if not match:
+        return None
+
+    alt_text = match.group(1)
+    image_path = match.group(2)
+
+    # Split alt text by separator if present
+    if '~' in alt_text:
+        alt_variants = alt_text.split('~')
+        if len(alt_variants) != len(langs):
+            raise VariantCountMismatch(
+                f"Expected {len(langs)} alt variants, got {len(alt_variants)}"
+            )
+    else:
+        # Single alt text for all languages
+        alt_variants = [alt_text] * len(langs)
+
+    return {
+        'type': 'image',
+        'alt_variants': dict(zip(langs, alt_variants)),
+        'src': image_path,
+        'is_mono': True  # Image source is always language-invariant
+    }
+```
+
+### 6. Frontmatter Parsing
 
 **Use existing YAML parsers:**
 
