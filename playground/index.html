@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3md Playground - Trilingual Markdown Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .container {
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            height: 100vh;
+        }
+
+        header {
+            background: #000;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-bottom: 2px solid #000;
+        }
+
+        header h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        header .version {
+            font-size: 0.6rem;
+            font-weight: 400;
+            opacity: 0.6;
+            letter-spacing: 0;
+        }
+
+        header p {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            margin-top: 0.15rem;
+        }
+
+        footer {
+            background: #000;
+            color: white;
+            padding: 0.4rem 1.5rem;
+            border-top: 1px solid #000;
+            font-size: 0.65rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        footer a {
+            color: white;
+            text-decoration: underline;
+        }
+
+        footer .metadata {
+            opacity: 0.6;
+        }
+
+        .main {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .editor-panel {
+            background: white;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #000;
+        }
+
+        .panel-header {
+            background: #000;
+            color: white;
+            padding: 0.5rem 1rem;
+            font-weight: 700;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        #editor {
+            flex: 1;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            border: none;
+            resize: none;
+            outline: none;
+            line-height: 1.5;
+            background: #fff;
+        }
+
+        .examples-toolbar {
+            background: #f8f8f8;
+            padding: 0.4rem 0.75rem;
+            border-bottom: 1px solid #000;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .examples-toolbar label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .examples-toolbar select {
+            flex: 1;
+            padding: 0.3rem 0.5rem;
+            font-size: 0.7rem;
+            border: 1px solid #000;
+            background: #fff;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        .examples-toolbar select:focus {
+            outline: 2px solid #000;
+            outline-offset: -2px;
+        }
+
+        .output-panel {
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        .output-container {
+            flex: 1;
+            display: grid;
+            grid-template-rows: 1fr 1fr 1fr;
+            gap: 0;
+            overflow: hidden;
+        }
+
+        .output-section {
+            display: flex;
+            flex-direction: column;
+            border-bottom: 1px solid #000;
+            background: white;
+            overflow: hidden;
+        }
+
+        .output-section:last-child {
+            border-bottom: none;
+        }
+
+        .output-header {
+            background: #f8f8f8;
+            padding: 0.4rem 0.75rem;
+            font-weight: 600;
+            font-size: 0.7rem;
+            border-bottom: 1px solid #000;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            justify-content: space-between;
+        }
+
+        .output-header .lang-label {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .output-header .lang {
+            display: none;
+        }
+
+        .view-tabs {
+            display: flex;
+            gap: 0;
+            border: 1px solid #000;
+        }
+
+        .view-tab {
+            background: #fff;
+            color: #000;
+            border: none;
+            border-right: 1px solid #000;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.65rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.1s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .view-tab:last-child {
+            border-right: none;
+        }
+
+        .view-tab:hover {
+            background: #f0f0f0;
+        }
+
+        .view-tab.active {
+            background: #000;
+            color: white;
+        }
+
+        .output-content {
+            flex: 1;
+            overflow-y: auto;
+            font-family: 'Noto Sans', 'Noto Sans Sinhala', 'Noto Sans Tamil', sans-serif;
+            line-height: 1.6;
+        }
+
+        .output-view {
+            padding: 0.75rem;
+            display: none;
+        }
+
+        .output-view.active {
+            display: block;
+        }
+
+        .markdown-view {
+            padding: 0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .markdown-view pre {
+            margin: 0;
+            padding: 0.75rem;
+            background: #fafafa;
+            height: 100%;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            border: none;
+        }
+
+        .output-content h1 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .output-content h2 {
+            font-size: 1.25rem;
+            margin-bottom: 0.4rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .output-content h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.4rem;
+            font-weight: 700;
+        }
+
+        .output-content p {
+            margin-bottom: 0.75rem;
+        }
+
+        .output-content ul, .output-content ol {
+            margin-left: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .output-content li {
+            margin-bottom: 0.2rem;
+        }
+
+        .output-content code {
+            background: #f0f0f0;
+            padding: 0.1rem 0.3rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            border: 1px solid #ddd;
+        }
+
+        .output-content pre {
+            background: #f8f8f8;
+            padding: 0.75rem;
+            overflow-x: auto;
+            margin-bottom: 0.75rem;
+            border: 1px solid #ddd;
+        }
+
+        .output-content blockquote {
+            border-left: 3px solid #000;
+            padding-left: 0.75rem;
+            margin-bottom: 0.75rem;
+            color: #333;
+        }
+
+        .output-content strong {
+            font-weight: 700;
+        }
+
+        .output-content em {
+            font-style: italic;
+        }
+
+        .error {
+            color: #000;
+            background: #f0f0f0;
+            padding: 0.5rem;
+            border: 1px solid #000;
+            margin: 0.5rem 0;
+            font-size: 0.85rem;
+        }
+
+        .empty-state {
+            color: #666;
+            font-size: 0.85rem;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        /* Language-specific font support */
+        .output-section[data-lang="si"] .output-content {
+            font-family: 'Noto Sans Sinhala', 'Noto Sans', sans-serif;
+        }
+
+        .output-section[data-lang="ta"] .output-content {
+            font-family: 'Noto Sans Tamil', 'Noto Sans', sans-serif;
+        }
+
+        .output-section[data-lang="en"] .output-content {
+            font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        @media (max-width: 768px) {
+            .main {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 1fr;
+            }
+
+            .editor-panel {
+                border-right: none;
+                border-bottom: 1px solid #ddd;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600&family=Noto+Sans+Sinhala:wght@400;600&family=Noto+Sans+Tamil:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>
+                3md Playground
+                <span class="version">v0.1.0</span>
+            </h1>
+            <p>Interactive demo for Trilingual Markdown (Sinhala, Tamil, English)</p>
+        </header>
+
+        <div class="main">
+            <div class="editor-panel">
+                <div class="panel-header">3md Source</div>
+                <div class="examples-toolbar">
+                    <label for="examples">Example:</label>
+                    <select id="examples">
+                        <option value="">Load an example...</option>
+                    </select>
+                </div>
+                <textarea id="editor" spellcheck="false" placeholder="Type or paste your 3md content here...">{{langs|si|ta|en}}
+
+# හැඳින්වීම~அறிமுகம்~Introduction
+
+මෙය සරල පරිච්ඡේදයකි.~இது எளிய பத்தி.~This is a simple paragraph.
+
+## ප්‍රධාන විශේෂාංග~முக்கிய அம்சங்கள்~Key Features
+
+- පළමු අයිතමය~முதல் உருப்படி~First item
+- දෙවන අයිතමය~இரண்டாவது உருப்படி~Second item
+- තුන්වන අයිතමය~மூன்றாவது உருப்படி~Third item
+
+## දිගු ප්‍රඡේද~நீண்ட பத்திகள்~Longer Paragraphs
+
+මෙය දිගු ඡේදයකි.
+එහි රේඛා කිහිපයක් ඇත.
+බ්ලොක් වෙන්කරන්නා භාවිතා කරන්න.
+෴
+இது நீண்ட பத்தி.
+இதில் பல வரிகள் உள்ளன.
+தொகுதி பிரிப்பான் பயன்படுத்தவும்.
+෴
+This is a longer paragraph.
+It has multiple lines.
+Use the block separator.
+
+**තද අකුරු** සහ *ඇල අකුරු* සහාය දක්වයි.~**தடித்த எழுத்துக்கள்** மற்றும் *சாய்வு எழுத்துக்கள்* ஆதரிக்கப்படுகின்றன.~**Bold text** and *italic text* are supported.</textarea>
+            </div>
+
+            <div class="output-panel">
+                <div class="panel-header">Live Preview</div>
+                <div class="output-container">
+                    <div class="output-section" data-lang="si">
+                        <div class="output-header">
+                            <div class="lang-label">
+                                <span class="lang">🇱🇰</span>
+                                <span>Sinhala (සිංහල)</span>
+                            </div>
+                            <div class="view-tabs">
+                                <button class="view-tab active" onclick="switchView('si', 'preview')">Preview</button>
+                                <button class="view-tab" onclick="switchView('si', 'markdown')">Markdown</button>
+                            </div>
+                        </div>
+                        <div class="output-content">
+                            <div class="output-view preview-view active" id="output-si-preview">
+                                <div class="empty-state">Processing...</div>
+                            </div>
+                            <div class="output-view markdown-view" id="output-si-markdown">
+                                <pre></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="output-section" data-lang="ta">
+                        <div class="output-header">
+                            <div class="lang-label">
+                                <span class="lang">🇱🇰</span>
+                                <span>Tamil (தமிழ்)</span>
+                            </div>
+                            <div class="view-tabs">
+                                <button class="view-tab active" onclick="switchView('ta', 'preview')">Preview</button>
+                                <button class="view-tab" onclick="switchView('ta', 'markdown')">Markdown</button>
+                            </div>
+                        </div>
+                        <div class="output-content">
+                            <div class="output-view preview-view active" id="output-ta-preview">
+                                <div class="empty-state">Processing...</div>
+                            </div>
+                            <div class="output-view markdown-view" id="output-ta-markdown">
+                                <pre></pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="output-section" data-lang="en">
+                        <div class="output-header">
+                            <div class="lang-label">
+                                <span class="lang">🇬🇧</span>
+                                <span>English</span>
+                            </div>
+                            <div class="view-tabs">
+                                <button class="view-tab active" onclick="switchView('en', 'preview')">Preview</button>
+                                <button class="view-tab" onclick="switchView('en', 'markdown')">Markdown</button>
+                            </div>
+                        </div>
+                        <div class="output-content">
+                            <div class="output-view preview-view active" id="output-en-preview">
+                                <div class="empty-state">Processing...</div>
+                            </div>
+                            <div class="output-view markdown-view" id="output-en-markdown">
+                                <pre></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <div>
+                <a href="https://github.com/mooniak/3md" target="_blank">github.com/mooniak/3md</a>
+            </div>
+            <div class="metadata">
+                Spec v0.1.0 • Parser v0.1.0 • Built 2025-12-29
+            </div>
+        </footer>
+    </div>
+
+    <script type="module">
+        // Import dependencies from CDN
+        import { unified } from 'https://esm.sh/unified@11';
+        import remarkParse from 'https://esm.sh/remark-parse@11';
+        import remarkStringify from 'https://esm.sh/remark-stringify@11';
+        import remarkRehype from 'https://esm.sh/remark-rehype@11';
+        import rehypeStringify from 'https://esm.sh/rehype-stringify@10';
+        import { visit } from 'https://esm.sh/unist-util-visit@5';
+
+
+        // Example files from spec/examples/
+        const EXAMPLES = {
+  "block-separator": "{{langs|si|ta|en}}\n\n# හැඳින්වීම~அறிமுகம~Introduction\n\nමෙය දිගු ඡේදයකි.\nමෙහි රේඛා කිහිපයක් ඇත.\nබහු-රේඛා අන්තර්ගතය සඳහා කුණ්ඩලිය භාවිතා කරමු.\n෴\nஇது நீண்ட பத்தி.\nஇதில் பல வரிகள் உள்ளன.\nபல-வரி உள்ளடக்கத்திற்கு குண்டலிகாவைப் பயன்படுத்துகிறோம்.\n෴\nThis is a longer paragraph.\nIt has multiple lines.\nWe use the Kunddaliya for multi-line content.\n\n## මූලධර්ම~கொள்கைகள்~Principles\n\nඔහුගේ ස්ථාපත්‍ය දර්ශනය මූලික මූලධර්ම කිහිපයක් මත පදනම් විය:\n෴\nஅவரது கட்டடக்கலை தத்துவம் முக்கிய கொள்கைகளை அடிப்படையாகக் கொண்டது:\n෴\nHis architectural philosophy was based on key principles:\n\n1. **ස්ථානය සමඟ සමගිය** - ස්වාභාවික භූ දර්ශනයට ප්‍රතිචාරය\n2. **අභ්‍යන්තර-බාහිර සම්බන්ධතාව** - අවකාශවල ද්‍රවශීල මායිම්\n3. **දේශීය ද්‍රව්‍ය භාවිතය** - සාම්ප්‍රදායික ශ්‍රී ලාංකික ද්‍රව්‍ය\n෴\n1. **இடத்துடன் இணக்கம்** - இயற்கை நிலப்பரப்புக்கு பதில்\n2. **உட்புற-வெளிப்புற இணைப்பு** - இடங்களின் திரவ எல்லைகள்\n3. **உள்ளூர் பொருட்களின் பயன்பாடு** - பாரம்பரிய இலங்கை பொருட்கள்\n෴\n1. **Harmony with place** - Response to natural landscape\n2. **Inside-outside connection** - Fluid boundaries of spaces\n3. **Use of local materials** - Traditional Sri Lankan materials\n",
+  "colombo": "{{langs|si|ta|en}}\n\n# කොළඹ නගරය~கொழும்பு நகரம்~Colombo City\n\n## හැඳින්වීම~அறிமுகம்~Introduction\n\nකොළඹ යනු ශ්‍රී ලංකාවේ වාණිජ අගනුවර වන අතර, දකුණු ආසියාවේ වඩාත්ම ජීවමාන නගරවලින් එකකි.\nඑය භූගෝලීය වශයෙන් වරප්‍රසාදී ස්ථානයක පිහිටා ඇති අතර, සිය වෘත්තීය ඉතිහාසය වසර 2000කට වැඩි කාලයක් ආපසු දිව යයි.\nනගරය පටුන්, බෞද්ධ, ඉස්ලාම්, හින්දු සහ යුරෝපීය බලපෑම්වල සංකීර්ණ මිශ්‍රණයකි.\n෴\nகொழும்பு இலங்கையின் வணிக தலைநகரம் மற்றும் தெற்காசியாவின் மிகவும் துடிப்பான நகரங்களில் ஒன்றாகும்.\nஇது புவியியல் ரீதியாக சாதகமான இடத்தில் அமைந்துள்ளது, அதன் வணிக வரலாறு 2000 ஆண்டுகளுக்கு மேல் செல்கிறது.\nநகரம் பேகன், பௌத்த, இஸ்லாமிய, இந்து மற்றும் ஐரோப்பிய தாக்கங்களின் சிக்கலான கலவையாகும்.\n෴\nColombo is the commercial capital of Sri Lanka and one of the most vibrant cities in South Asia.\nIt is strategically located geographically, and its trading history goes back over 2000 years.\nThe city is a complex blend of Pagan, Buddhist, Islamic, Hindu, and European influences.\n\n## ඉතිහාසය~வரலாறு~History\n\n### පෘතුගීසි යුගය~போர்த்துகீசிய காலம்~Portuguese Era\n\n16 වන සියවසේදී පෘතුගීසින් කොළඹ වරායට පැමිණි අතර, එය දකුණු ආසියාවේ ප්‍රධාන වාණිජ මධ්‍යස්ථානයක් බවට පත් කළහ.\n1517 දී පළමු කොටුව ඉදිකරන ලද අතර, මුල් නගර සැලසුම් රටාව තවමත් පෙට්ටා ප්‍රදේශයේ දැකිය හැක.\n෴\n16 ஆம் நூற்றாண்டில் போர்த்துகீசியர் கொழும்பு துறைமுகத்திற்கு வந்து, அதை தெற்காசியாவின் முக்கிய வர்த்தக மையமாக மாற்றினர்.\n1517 இல் முதல் கோட்டை கட்டப்பட்டது, ஆரம்ப நகர திட்டமிடல் இன்னும் பெட்டா பகுதியில் காணலாம்.\n෴\nThe Portuguese arrived at Colombo harbor in the 16th century and made it a major trading hub in South Asia.\nThe first fort was built in 1517, and the initial city planning can still be seen in the Pettah area.\n\n### ලන්දේසි යුගය~டச்சுக் காலம்~Dutch Era\n\n1656 දී ලන්දේසීන් පෘතුගීසින් පරාජය කර නගරය පාලනය කර ගත්හ.\nඔවුන් සංකීර්ණ ඇළ මාර්ග පද්ධතියක් ගොඩනඟා, අද වන තෙක් භාවිතා වේ.\nලන්දේසි යුගයේ ගොඩනැගිලි වොල්ෆෙන්ඩාල් සහ කොළඹ කොටුව අවට සංරක්ෂණය කර ඇත.\n෴\n1656 இல் டச்சுக்காரர்கள் போர்த்துகீசியரை தோற்கடித்து நகரத்தை கைப்பற்றினர்.\nஅவர்கள் சிக்கலான கால்வாய் அமைப்பை உருவாக்கினர், இன்றும் பயன்பாட்டில் உள்ளது.\nவொல்ஃபெண்டால் மற்றும் கொழும்பு கோட்டையைச் சுற்றியுள்ள டச்சு காலத்து கட்டிடங்கள் பாதுகாக்கப்பட்டுள்ளன.\n෴\nThe Dutch defeated the Portuguese in 1656 and took control of the city.\nThey built a sophisticated canal system, still in use today.\nDutch-era buildings in Wolvendaal and around Colombo Fort have been preserved.\n\n### බ්‍රිතාන්‍ය යුගය~பிரித்தானிய காலம்~British Era\n\n1796 දී බ්‍රිතාන්‍යයන් කොළඹ පාලනය කර ගෙන, එය සිලෝන් යටත් විජිතයේ පරිපාලන අගනුවර බවට පත් කළහ.\nනගර සංවර්ධනය වේගයෙන් පුළුල් විය - විග්‍රාම් මාවත, ගාල් ෆේස් ග්‍රීන් සහ සින්නමන් උද්‍යාන මෙම යුගයේ නිර්මාණයන්ය.\nබ්‍රිතාන්‍ය යටත් විජිත ගොඩනැගිලි, සංරක්ෂිත ජාතික කෞතුකාගාරය සහ පැරණි පාර්ලිමේන්තුව ඇතුළුව, නගරයේ ගොඩනැගිලි භූ දර්ශනය අර්ථ දක්වයි.\n෴\n1796 இல் பிரித்தானியர் கொழும்புவைக் கைப்பற்றி, இலங்கை காலனியின் நிர்வாக தலைநகராக மாற்றினர்.\nநகர்ப்புற மேம்பாடு விரைவாக விரிவடைந்தது - விக்ரம வீதி, காலி ஃபேஸ் கிரீன் மற்றும் இலவங்கப்பட்டை தோட்டங்கள் இந்த காலத்தின் படைப்புகள்.\nதேசிய அருங்காட்சியகம் மற்றும் பழைய நாடாளுமன்றம் உட்பட பிரித்தானிய காலனித்துவ கட்டிடங்கள் நகரின் கட்டடக்கலையை வரையறுக்கின்றன.\n෴\nThe British took Colombo in 1796 and made it the administrative capital of the Ceylon colony.\nUrban development expanded rapidly - Viharamahadevi Park, Galle Face Green, and Cinnamon Gardens are creations of this era.\nBritish colonial buildings, including the preserved National Museum and Old Parliament, define the city's architectural landscape.\n\n## ප්‍රධාන ස්ථාන~முக்கிய இடங்கள்~Key Locations\n\n### ගාල් ෆේස් ග්‍රීන්~காலி ஃபேஸ் கிரீன்~Galle Face Green\n\nසාගරයට මුහුණලා ඇති මෙම විශාල විවෘත ප්‍රදේශය කොළඹ නිවාසීන්ගේ ජනප්‍රිය රැස්වීම් ස්ථානයකි.\nසන්ධ්‍යාවේදී, පවුල් සහ යෞවනයන් සාගර සුළඟ සහ දේශීය වීදි ආහාර භුක්ති විඳීමට එක්රැස් වෙති.\nඅත්පොල, වඩෙ, කොටු රොටි සහ තලපා වැනි ප්‍රසිද්ධ සුළු කෑම අමතක නොකළ යුතුය.\n෴\nகடலை நோக்கிய இந்த பரந்த திறந்தவெளி கொழும்பு குடியிருப்பாளர்களின் பிரபலமான சந்திப்பிடம்.\nமாலை நேரங்களில், குடும்பங்கள் மற்றும் இளைஞர்கள் கடல் காற்று மற்றும் உள்ளூர் தெரு உணவுகளை அனுபவிக்க கூடுகின்றனர்.\nஅத்திபழம், வடை, கொத்து ரொட்டி மற்றும் தலபா போன்ற பிரபலமான தின்பண்டங்களை தவறவிடக்கூடாது.\n෴\nThis vast open space facing the ocean is a popular gathering spot for Colombo residents.\nIn the evenings, families and youth gather to enjoy the sea breeze and local street food.\nPopular snacks like isso wade, kottu roti, and isso vadai should not be missed.\n\n### පෙට්ටා~பெட்டா~Pettah\n\nකොළඹ හි ඉපැරණිතම වාණිජ දිස්ත්‍රික්කය, පෙට්ටා සංවේදී අත්දැකීමකි.\nපටු වීදිවල කඩ සාප්පු, පල්ලි, දේවස්ථාන, කෝවිල් සහ මුස්ලිම් පල්ලි දෙදරුම් මිශ්‍ර වේ.\nකුළුබඩු පාරේ සිට රත්රන් වෙළඳසැල්, පෙට්ටා සියලු භාෂා සහ ආගම් එකට එක්රැස් කරයි.\n෴\nகொழும்பின் பழமையான வணிக மாவட்டமான பெட்டா உணர்வுபூர்வமான அனுபவம்.\nகுறுகிய தெருக்களில் கடைகள், தேவாலயங்கள், கோவில்கள் மற்றும் மசூதிகள் ஒன்றாக கலக்கின்றன.\nமசாலா தெருவிலிருந்து தங்க கடைகள் வரை, பெட்டா அனைத்து மொழிகள் மற்றும் மதங்களையும் ஒன்றாக கொண்டுவருகிறது.\n෴\nColombo's oldest commercial district, Pettah is a sensory experience.\nShops, churches, kovils, and mosques blend together in the narrow streets.\nFrom spice street to gold shops, Pettah brings together all languages and religions.\n\n### ගංගාරාම විහාරය~கங்காரம விகாரய~Gangaramaya Temple\n\nමෙය කොළඹ හි වඩාත්ම ප්‍රසිද්ධ බෞද්ධ විහාරවලින් එකකි.\nපාරම්පරික ශිල්පීය ක්‍රම නවීන ගෘහ නිර්මාණ ශිල්පය සමඟ ඒකාබද්ධ කරන ස්වකීය මුළුතැන්ගෙයි.\nවාර්ෂික නවම් පෙරහර පෙළපාලිය, විශිෂ්ට ඇතුන් සහ නර්තන ශිල්පීන් ඇතුළත්, ප්‍රධාන සංස්කෘතික සිදුවීමකි.\n෴\nஇது கொழும்பின் மிகவும் பிரபலமான பௌத்த கோவில்களில் ஒன்றாகும்.\nபாரம்பரிய கைவினைத் திறன் நவீன கட்டிடக்கலையுடன் இணைந்த தனித்துவமான வடிவமைப்பு.\nஆண்டுதோறும் நவம் பெரகெர ஊர்வலம், அலங்கரிக்கப்பட்ட யானைகள் மற்றும் நடனக் கலைஞர்களுடன், ஒரு முக்கிய கலாச்சார நிகழ்வாகும்.\n෴\nThis is one of Colombo's most famous Buddhist temples.\nA unique design that blends traditional craftsmanship with modern architecture.\nThe annual Navam Perahera procession, with decorated elephants and dancers, is a major cultural event.\n\n## ආහාර සංස්කෘතිය~உணவு கலாச்சாரம்~Food Culture\n\n### සාම්ප්‍රදායික ආහාර~பாரம்பரிய உணவு~Traditional Food\n\nකොළඹ හි ආහාර දර්ශනය අතිශයින් විවිධාකාර වේ:\n෴\nகொழும்பின் உணவு காட்சி மிகவும் பன்முகத்தன்மை வாய்ந்தது:\n෴\nColombo's food scene is incredibly diverse:\n\n1. **හොපර්** - උදෑසන ආහාරය සඳහා ජනප්‍රිය සහල් පෑන්කේක්\n2. **කොත්තු** - කුළුබඩු සහිත එළවළු සහ මස් සමඟ කඩා ඇති රොටි\n3. **ලම්ප්‍රයිස්** - බර්ගර්-ලන්දේසි විදේශීය චීස්, කෙසෙල් කොළ පෙති වල පිසූ\n෴\n1. **ஆப்பம்** - காலை உணவுக்கு பிரபலமான அரிசி அப்பம்\n2. **கொத்து** - மசாலா காய்கறிகள் மற்றும் இறைச்சியுடன் நறுக்கப்பட்ட ரொட்டி\n3. **லம்ப்ரைஸ்** - பர்கர்-டச்சு கலப்பு, வாழை இலையில் சுடப்பட்டது\n෴\n1. **Hopper** - Popular rice pancake for breakfast\n2. **Kottu** - Chopped roti with spiced vegetables and meat\n3. **Lamprais** - Burgher-Dutch fusion, cooked in banana leaf\n\n### නවීන කෑම සහ පානශාලා~நவீன உணவு மற்றும் கஃபேக்கள்~Modern Dining and Cafés\n\nමෑත වසරවලදී, කොළඹ නවීන කෑම හා කෝපි සංස්කෘතියේ මධ්‍යස්ථානයක් බවට පත්ව ඇත.\nසින්නමන් උද්‍යාන සහ කොළපිටිය ආකර්ෂණීය කෝපි හලුම්, ආර්ට් ගැලරි සහ බුටික් හෝටල් වලින් පිරී ඇත.\nදේශීය සහ ජාත්‍යන්තර කෑම අත්දැකීම් විවිධ රුචි අරුචිකම් සලසයි.\n෴\nசமீபத்திய ஆண்டுகளில், கொழும்பு நவீன உணவு மற்றும் காபி கலாச்சாரத்தின் மையமாக மாறியுள்ளது.\nஇலவங்கப்பட்டை தோட்டங்கள் மற்றும் கொல்பெட்டி நவநாகரீக காபிக் கடைகள், கலை காட்சியகங்கள் மற்றும் பூட்டிக் ஹோட்டல்களால் நிறைந்துள்ளன.\nஉள்ளூர் மற்றும் சர்வதேச உணவு அனுபவங்கள் பல்வேறு சுவைகளை வழங்குகின்றன.\n෴\nIn recent years, Colombo has become a hub of modern dining and café culture.\nCinnamon Gardens and Kollupitiya are filled with trendy coffee shops, art galleries, and boutique hotels.\nLocal and international dining experiences offer diverse flavors.\n\n## ගමනාගමන~போக்குவரத்து~Transportation\n\n### පොදු ප්‍රවාහනය~பொது போக்குவரத்து~Public Transport\n\nකොළඹ විවිධ ප්‍රවාහන විකල්ප ඉදිරිපත් කරයි:\n෴\nகொழும்பு பல்வேறு போக்குவரத்து விருப்பங்களை வழங்குகிறது:\n෴\nColombo offers various transportation options:\n\n- **බස්** - අඩු මිලට නමුත් ජනාකීර්ණ~**பேருந்துகள்** - மலிவான ஆனால் நெரிசலானவை~**Buses** - Affordable but crowded\n- **ත්‍රීවීලර්** - ඉක්මන් කෙටි දුර ගමන් සඳහා~**மூன்று சக்கர வண்டி** - குறுகிய தூரங்களுக்கு விரைவான~**Three-wheelers** - Quick for short distances\n- **කියර්** - ඇප් මත පදනම් වූ රථ-හුවමාරුව~**ரைடு-பகிர்வு** - பயன்பாடு அடிப்படையிலான வாகன-பகிர்வு~**Ride-sharing** - App-based car services\n- **දුම්රිය** - වෙරළබඩ රේඛාව ලස්සන දර්ශන ඉදිරිපත් කරයි~**ரயில்** - கடலோர பாதை அழகான காட்சிகளை வழங்குகிறது~**Train** - The coastal line offers beautiful views\n\n## අවසාන අදහස්~இறுதி எண்ணங்கள்~Final Thoughts\n\nකොළඹ නිරන්තරයෙන් පරිණාමය වන නගරයකි - පැරදීම හා නවතාවත් අතර, සම්ප්‍රදාය හා නවීනත්වය අතර.\nශ්‍රී ලංකාවේ සංකීර්ණ ඉතිහාසය සහ සංස්කෘතික විවිධත්වය අවබෝධ කර ගැනීමට කෙනෙකුට අවශ්‍ය නම්, කොළඹ ආරම්භක ස්ථානය වේ.\nපැරණි කොටු ප්‍රදේශයේ යටත් විජිත ගොඩනැගිලි සිට සින්නමන් උද්‍යානවල නවීන කෝපි හලුම් දක්වා, නගරය ශ්‍රී ලංකාවේ ගමනේ ජීවමාන සාක්ෂියකි.\n෴\nகொழும்பு தொடர்ந்து வளர்ந்து வரும் நகரம் - பழையது மற்றும் புதியது, பாரம்பரியம் மற்றும் நவீனத்துவம் இடையே.\nஇலங்கையின் சிக்கலான வரலாறு மற்றும் கலாச்சார பன்முகத்தன்மையை புரிந்து கொள்ள விரும்பினால், கொழும்பு தொடக்க புள்ளியாகும்.\nபழைய கோட்டை பகுதியில் காலனித்துவ கட்டிடங்களிலிருந்து இலவங்கப்பட்டை தோட்டங்களின் நவீன காபிக் கடைகள் வரை, நகரம் இலங்கை பயணத்தின் உயிருள்ள சாட்சியாகும்.\n෴\nColombo is a constantly evolving city - between old and new, tradition and modernity.\nIf one wants to understand Sri Lanka's complex history and cultural diversity, Colombo is the starting point.\nFrom colonial buildings in the old Fort area to modern cafés in Cinnamon Gardens, the city is a living testament to Sri Lanka's journey.\n",
+  "minimal": "{{langs|si|ta|en}}\n\nහෙලෝ~வணக்கம்~Hello\n",
+  "mixed": "{{langs|si|ta|en}}\n\n# කොළඹ නගරය~கொழும்பு நகரம்~Colombo City\n\nකොළඹ ශ්‍රී ලංකාවේ වාණිජ අගනුවර සහ විශාලතම නගරයයි.\nඑය බස්නාහිර පළාතේ පිහිටා ඇත.\n෴\nகொழும்பு இலங்கையின் வர்த்தக தலைநகரம் மற்றும் மிகப்பெரிய நகரமாகும்.\nஇது மேல் மாகாணத்தில் அமைந்துள்ளது.\n෴\nColombo is Sri Lanka's commercial capital and largest city.\nIt is located in the Western Province.\n\n## ප්‍රධාන ස්ථාන~முக்கிய இடங்கள்~Main Places\n\n- ගාල් මුවදොර ග්‍රීන් - නගර උද්‍යානය~காலி முகமைப்பு பசுமை - நகர பூங்கா~Galle Face Green - Urban park\n- ජාතික කෞතුකාගාරය - ඓතිහාසික කෞතුකාගාරය~தேசிய அருங்காட்சியகம் - வரலாற்று அருங்காட்சியகம்~National Museum - Historical museum\n\n\n## ප්‍රවාහන~போக்குவரத்து~Transport\n\nනගර දුම්රිය~நகர இரயில்~Urban railway\n\nබස් මාර්ග~பேருந்து வழித்தடங்கள்~Bus routes\n\nතුන්රෝද රථ~மூன்று சக்கர வாகனங்கள்~Three-wheelers\n\n## ජනගහන දත්ත~மக்கள்தொகை தரவு~Population Data\n\nPopulation statistics (approximate):\n\n```\nCity proper: 750,000\nMetro area: 5,600,000\n```\n\nකොළඹ බහු-සංස්කෘතික නගරයක් වන අතර විවිධ ජනවාර්ගික කණ්ඩායම් එකට ජීවත් වෙති.\nසිංහල, දෙමළ, මුස්ලිම් සහ අනෙකුත් ප්‍රජාවන් මෙහි වාසය කරති.\n෴\nகொழும்பு பல்கலாச்சார நகரமாகும், பல்வேறு இனக்குழுக்கள் ஒன்றாக வாழ்கின்றனர்.\nசிங்களவர், தமிழர், முஸ்லீம் மற்றும் பிற சமூகங்கள் இங்கு வசிக்கின்றனர்.\n෴\nColombo is a multicultural city where diverse ethnic groups live together.\nSinhala, Tamil, Muslim and other communities reside here.\n",
+  "simple-inline": "{{langs|si|ta|en}}\n\n# හැඳින්වීම~அறிமுகம~Introduction\n\nමෙය සරල ලේඛනයකි.~இது ஒரு எளிய ஆவணம்.~This is a simple document.\n\n## විශේෂාංග~அம்சங்கள்~Features\n\n- පළමු අයිතමය~முதல் உருப்படி~First item\n- දෙවන අයිතමය~இரண்டாவது உருப்படி~Second item\n- තුන්වන අයිතමය~மூன்றாவது உருப்படி~Third item\n"
+};
+        
+
+        // Inline the preprocessText function from the parser
+        function preprocessText(text, locale = 'si') {
+            const BLOCK_SEPARATOR = '\u0DF4'; // ෴
+
+            // Extract language declaration
+            const langMatch = text.match(/\{\{langs\|(\w+)\|(\w+)\|(\w+)\}\}/i);
+            if (!langMatch) {
+                return text;
+            }
+
+            const currentLangs = [langMatch[1], langMatch[2], langMatch[3]];
+            const targetIndex = currentLangs.indexOf(locale);
+
+            if (targetIndex === -1) {
+                return text;
+            }
+
+            // Remove the lang declaration for processing
+            const remainingText = text.replace(/\{\{langs\|(\w+)\|(\w+)\|(\w+)\}\}\s*\n*/i, '');
+
+            // If no block separators, return original text
+            if (!remainingText.includes(BLOCK_SEPARATOR)) {
+                return text;
+            }
+
+            // Split by blank lines to get markdown blocks
+            const blocks = remainingText.split(/\n\n+/);
+            const processedBlocks = [];
+
+            for (const block of blocks) {
+                if (block.includes(BLOCK_SEPARATOR)) {
+                    // Split by newline + ෴ + newline pattern
+                    const variants = block
+                        .split(new RegExp(`\\n${BLOCK_SEPARATOR}\\n`))
+                        .map(v => v.trim())
+                        .filter(v => v.length > 0);
+
+                    if (variants.length === currentLangs.length) {
+                        // Valid multi-block, extract target language variant
+                        const targetContent = variants[targetIndex];
+
+                        if (targetContent) {
+                            // Check if this is a list
+                            const isListBlock = targetContent.split('\n').some(line => {
+                                const trimmed = line.trim();
+                                return /^[-*+]\s/.test(trimmed) || /^\d+\.\s/.test(trimmed);
+                            });
+
+                            if (isListBlock) {
+                                processedBlocks.push(targetContent);
+                            } else {
+                                // For paragraphs, add backslash for hard line breaks
+                                const lines = targetContent.split('\n');
+                                const processedLines = lines.map((line, idx) => {
+                                    if (idx < lines.length - 1 && line.trim().length > 0) {
+                                        return line + '\\';
+                                    }
+                                    return line;
+                                });
+                                processedBlocks.push(processedLines.join('\n'));
+                            }
+                        }
+                    } else {
+                        // Invalid multi-block, keep as-is
+                        processedBlocks.push(block);
+                    }
+                } else {
+                    // Not a multi-block, keep as-is
+                    processedBlocks.push(block);
+                }
+            }
+
+            // Reconstruct with lang declaration
+            const langDeclaration = `{{langs|${currentLangs.join('|')}}}`;
+            return langDeclaration + '\n\n' + processedBlocks.join('\n\n');
+        }
+
+        // Inline the remark3md plugin
+        function remark3md(options = {}) {
+            const locale = options.locale || 'si';
+            const langOrder = ['si', 'ta', 'en'];
+            const targetIndex = langOrder.indexOf(locale);
+
+            return (tree) => {
+                visit(tree, (node, index, parent) => {
+                    // Remove language declaration paragraphs
+                    if (node.type === 'paragraph' && node.children && node.children.length === 1) {
+                        const child = node.children[0];
+                        if (child.type === 'text' && child.value &&
+                            /^\{\{langs\|(\w+)\|(\w+)\|(\w+)\}\}$/.test(child.value.trim())) {
+                            // Remove this node
+                            if (parent && index !== undefined) {
+                                parent.children.splice(index, 1);
+                                return index;
+                            }
+                        }
+                    }
+
+                    // Process text nodes with inline separator
+                    if (node.type === 'text' && node.value && node.value.includes('~')) {
+                        const parts = node.value.split('~');
+                        if (parts.length === 3 && targetIndex >= 0) {
+                            node.value = parts[targetIndex];
+                        }
+                    }
+
+                    // Process heading nodes
+                    if (node.type === 'heading' && node.children) {
+                        node.children.forEach(child => {
+                            if (child.type === 'text' && child.value && child.value.includes('~')) {
+                                const parts = child.value.split('~');
+                                if (parts.length === 3 && targetIndex >= 0) {
+                                    child.value = parts[targetIndex];
+                                }
+                            }
+                        });
+                    }
+
+                    // Process paragraph nodes
+                    if (node.type === 'paragraph' && node.children) {
+                        node.children.forEach(child => {
+                            if (child.type === 'text' && child.value && child.value.includes('~')) {
+                                const parts = child.value.split('~');
+                                if (parts.length === 3 && targetIndex >= 0) {
+                                    child.value = parts[targetIndex];
+                                }
+                            }
+                        });
+                    }
+
+                    // Process list items
+                    if (node.type === 'listItem' && node.children) {
+                        node.children.forEach(child => {
+                            if (child.type === 'paragraph' && child.children) {
+                                child.children.forEach(textNode => {
+                                    if (textNode.type === 'text' && textNode.value && textNode.value.includes('~')) {
+                                        const parts = textNode.value.split('~');
+                                        if (parts.length === 3 && targetIndex >= 0) {
+                                            textNode.value = parts[targetIndex];
+                                        }
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            };
+        }
+
+        // Store markdown content for downloads
+        const markdownCache = {
+            si: '',
+            ta: '',
+            en: ''
+        };
+
+        // Main processing function
+        async function process3md(content, lang) {
+            try {
+                // Preprocess to handle block separators
+                const preprocessed = preprocessText(content, lang);
+
+                // Process to markdown first (for download)
+                const mdProcessor = unified()
+                    .use(remarkParse)
+                    .use(remark3md, { locale: lang })
+                    .use(remarkStringify);
+
+                const mdFile = await mdProcessor.process(preprocessed);
+                markdownCache[lang] = String(mdFile);
+
+                // Process to HTML (for display)
+                const htmlProcessor = unified()
+                    .use(remarkParse)
+                    .use(remark3md, { locale: lang })
+                    .use(remarkRehype)
+                    .use(rehypeStringify);
+
+                const htmlFile = await htmlProcessor.process(preprocessed);
+                return String(htmlFile);
+            } catch (error) {
+                return `<div class="error">Error parsing ${lang}: ${error.message}</div>`;
+            }
+        }
+
+        // Switch between preview and markdown view
+        window.switchView = function(lang, view) {
+            // Update tab buttons
+            const section = document.querySelector(`.output-section[data-lang="${lang}"]`);
+            const tabs = section.querySelectorAll('.view-tab');
+            tabs.forEach(tab => {
+                if ((view === 'preview' && tab.textContent === 'Preview') ||
+                    (view === 'markdown' && tab.textContent === 'Markdown')) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+
+            // Update view panels
+            const previewView = document.getElementById(`output-${lang}-preview`);
+            const markdownView = document.getElementById(`output-${lang}-markdown`);
+
+            if (view === 'preview') {
+                previewView.classList.add('active');
+                markdownView.classList.remove('active');
+            } else {
+                previewView.classList.remove('active');
+                markdownView.classList.add('active');
+            }
+        };
+
+        // Update outputs
+        async function updateOutputs() {
+            const content = document.getElementById('editor').value;
+
+            if (!content.trim()) {
+                ['si', 'ta', 'en'].forEach(lang => {
+                    document.getElementById(`output-${lang}-preview`).innerHTML =
+                        '<div class="empty-state">Enter 3md content to see the preview</div>';
+                    document.querySelector(`#output-${lang}-markdown pre`).textContent = '';
+                });
+                return;
+            }
+
+            // Process all three languages in parallel
+            const [siHtml, taHtml, enHtml] = await Promise.all([
+                process3md(content, 'si'),
+                process3md(content, 'ta'),
+                process3md(content, 'en')
+            ]);
+
+            // Update preview views
+            document.getElementById('output-si-preview').innerHTML = siHtml;
+            document.getElementById('output-ta-preview').innerHTML = taHtml;
+            document.getElementById('output-en-preview').innerHTML = enHtml;
+
+            // Update markdown views
+            document.querySelector('#output-si-markdown pre').textContent = markdownCache.si;
+            document.querySelector('#output-ta-markdown pre').textContent = markdownCache.ta;
+            document.querySelector('#output-en-markdown pre').textContent = markdownCache.en;
+        }
+
+        // Populate examples dropdown
+        const examplesSelect = document.getElementById('examples');
+        const exampleNames = Object.keys(EXAMPLES).sort();
+
+        for (const name of exampleNames) {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            examplesSelect.appendChild(option);
+        }
+
+        // Handle example selection
+        examplesSelect.addEventListener('change', (e) => {
+            const exampleName = e.target.value;
+            if (exampleName && EXAMPLES[exampleName]) {
+                document.getElementById('editor').value = EXAMPLES[exampleName];
+                updateOutputs();
+            }
+        });
+
+        // Set up event listeners
+        const editor = document.getElementById('editor');
+        let timeout;
+        editor.addEventListener('input', () => {
+            clearTimeout(timeout);
+            timeout = setTimeout(updateOutputs, 300);
+        });
+
+        // Initial render
+        updateOutputs();
+    </script>
+</body>
+</html>

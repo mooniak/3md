@@ -1,0 +1,13 @@
+{
+  "name": "3md-playground",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Interactive playground for 3md (Trilingual Markdown)",
+  "scripts": {
+    "build": "node build.js",
+    "watch": "nodemon --watch ../parser/src --watch ../spec/examples --exec 'npm run build'"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  }
+}
