@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+/* Block highlighting for lint panel */
+.block-highlighted {
+  background-color: rgb(254 249 195); /* yellow-100 */
+  border: 2px solid rgb(250 204 21); /* yellow-400 */
+  border-radius: 0.25rem;
+  transition: all 0.3s ease;
+  scroll-margin: 2rem;
+}
+
+/* Block hover effect - subtle visual feedback that blocks are editable */
+[data-block-id]:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+  cursor: text;
+  transition: background-color 0.2s ease;
+}

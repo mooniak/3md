@@ -37,6 +37,8 @@ Use `~` to separate short translations on the same line:
 හෙලෝ වර්ල්ඩ්!~வணக்கம் உலகம்!~Hello World!
 ```
 
+When this is processed with a 3md suppoerted appication the output will be three seperate lines or files for Sinhala, Tamil, and English.
+
 Perfect for:
 - Headings and titles
 - Short sentences
