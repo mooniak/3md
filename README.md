@@ -781,9 +781,9 @@ If you build a tool that works with 3md, you're helping build public infrastruct
 
 ## About This Project
 
-**3md** is maintained by the [TriText project](https://github.com/mooniak/tritext) and developed with the Mooniak community.
+**3md** is maintained by [Mooniak](https://mooniak.com)
 
-**Primary Contributors:** Pathum Egodawatta, TriText Team
+**Primary Contributors:** Pathum Egodawatta
 
 **Current Version:** 0.1.0 (2025-12-29)
 
